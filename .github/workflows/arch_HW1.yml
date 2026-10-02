@@ -1,0 +1,71 @@
+name: arch_HW1 — service health check
+
+on:
+  push:
+    paths:
+      - 'arch_HW1/**'
+      - '.github/workflows/arch_HW1.yml'
+  pull_request:
+    paths:
+      - 'arch_HW1/**'
+      - '.github/workflows/arch_HW1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: arch_HW1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test HTTP contract
+        run: python -m unittest discover -s service/tests -v
+      - name: Build and start Docker container
+        run: |
+          docker build -t orders-service:ci .
+          docker run -d --name orders-service-ci -p 127.0.0.1:8080:8080 orders-service:ci
+      - name: Wait for Docker health and verify HTTP response
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' orders-service-ci)
+            if [ "$status" = "healthy" ]; then
+              python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          with urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=3) as response:
+              assert response.status == 200
+              assert response.headers.get_content_type() == "application/json"
+              assert json.load(response) == {"status": "ok", "service": "orders-service"}
+          try:
+              urllib.request.urlopen("http://127.0.0.1:8080/orders", timeout=3)
+          except urllib.error.HTTPError as error:
+              assert error.code == 404
+          else:
+              raise AssertionError("Unexpected business endpoint: /orders must return 404")
+          PY
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              docker logs orders-service-ci
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs orders-service-ci
+          echo "Docker health-check did not become healthy within 60 seconds"
+          exit 1
+      - name: Clean up Docker container
+        if: always()
+        run: docker rm -f orders-service-ci || true
