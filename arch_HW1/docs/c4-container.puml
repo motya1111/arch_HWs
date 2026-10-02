@@ -1,0 +1,69 @@
+@startuml marketplace-container
+' Self-contained C4 notation; no remote includes or external icon libraries.
+title Marketplace — C4 Container (целевая архитектура)
+left to right direction
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 12
+skinparam rectangle {
+  BackgroundColor<<Container>> #174A78
+  FontColor<<Container>> white
+  BackgroundColor<<External>> #596373
+  FontColor<<External>> white
+}
+skinparam database {
+  FontColor white
+  BorderColor white
+}
+actor "Покупатель\n[Person]\nЛента и заказы" as buyer
+actor "Продавец\n[Person]\nУправление предложениями" as seller
+rectangle "Платёжный провайдер\n[External Software System]\nПриём оплаты и возвраты" as psp <<External>>
+rectangle "Email / SMS провайдер\n[External Software System]\nДоставка сообщений" as provider <<External>>
+rectangle "Marketplace [Software System]" {
+rectangle "Web App\n[Container | React / TypeScript]\nИнтерфейс покупателя и продавца" as web <<Container>>
+rectangle "API Gateway\n[Container | NGINX]\nTLS, маршрутизация, проверка токена через Users" as gateway <<Container>>
+rectangle "Users Service\n[Container | Python / FastAPI]\nУчётные записи, роли, контакты\nи выбранные категории интересов" as users <<Container>>
+database "Users DB\n[Container: Database | PostgreSQL]\nПрофили, роли, контакты\nи предпочтения" as users_db #38698F
+rectangle "Catalog Service\n[Container | Python / FastAPI]\nПредложения, цены, остатки\nи резервирование товаров" as catalog <<Container>>
+database "Catalog DB\n[Container: Database | PostgreSQL]\nТовары, предложения, цены\nостатки и резервы" as catalog_db #38698F
+rectangle "Feed Service\n[Container | Python / FastAPI]\nПерсональная лента, просмотры\nи проекция опубликованных товаров" as feed <<Container>>
+database "Feed DB\n[Container: Database | PostgreSQL]\nПросмотры, популярность\nпроекции каталога и интересов" as feed_db #38698F
+rectangle "Orders Service\n[Container | Python 3.12 / HTTP]\nЗаказы, расчёт суммы\nи координация оформления" as orders <<Container>>
+database "Orders DB\n[Container: Database | PostgreSQL]\nЗаказы, снимки позиций\nсуммы и состояние процесса" as orders_db #38698F
+rectangle "Payments Service\n[Container | Python / FastAPI]\nПлатежи, учёт операций\nвозвраты и интеграция с PSP" as payments <<Container>>
+database "Payments DB\n[Container: Database | PostgreSQL]\nПопытки платежа, суммы\nжурнал операций и возвраты" as payments_db #38698F
+rectangle "Notifications Service\n[Container | Python / FastAPI]\nУведомления о заказах\nи повторные попытки отправки" as notifications <<Container>>
+database "Notifications DB\n[Container: Database | PostgreSQL]\nЗадания, результаты доставки\nпроекция проверенных контактов" as notifications_db #38698F
+}
+buyer --> web : HTTPS: интерфейс покупателя
+seller --> web : HTTPS: интерфейс продавца
+web --> gateway : HTTPS/JSON: запросы интерфейса
+gateway --> users : HTTPS/JSON: вход, профиль, проверка токена
+gateway --> catalog : HTTPS/JSON: чтение и управление каталогом
+gateway --> feed : HTTPS/JSON: лента и просмотры
+gateway --> orders : HTTPS/JSON: оформление, состояние, отмена
+orders --> catalog : HTTPS/JSON: reserve, confirm, release
+orders --> payments : HTTPS/JSON: create, status, cancel, refund
+payments --> psp : HTTPS API: платёж, сверка, отмена, возврат
+psp --> payments : HTTPS webhook: проверяемый результат платежа
+notifications --> provider : HTTPS API: отправка email/SMS
+users --> users_db : SQL / PostgreSQL protocol: своё состояние
+catalog --> catalog_db : SQL / PostgreSQL protocol: своё состояние
+feed --> feed_db : SQL / PostgreSQL protocol: своё состояние
+orders --> orders_db : SQL / PostgreSQL protocol: своё состояние
+payments --> payments_db : SQL / PostgreSQL protocol: своё состояние
+notifications --> notifications_db : SQL / PostgreSQL protocol: своё состояние
+users -[#A75A00,dashed]-> feed : PreferencesUpdated / удаление профиля\nAMQP 0-9-1 via RabbitMQ
+catalog -[#A75A00,dashed]-> feed : CatalogUpdated\nAMQP 0-9-1 via RabbitMQ
+users -[#A75A00,dashed]-> notifications : UserContactsUpdated / удаление профиля\nAMQP 0-9-1 via RabbitMQ
+payments -[#A75A00,dashed]-> orders : PaymentStatusChanged\nAMQP 0-9-1 via RabbitMQ
+orders -[#A75A00,dashed]-> notifications : OrderStatusChanged\nAMQP 0-9-1 via RabbitMQ
+legend bottom
+  Синий = приложение, database = приватное хранилище
+  Серый = внешняя система, actor = человек
+  Сплошная стрелка = синхронный запрос
+  Пунктирная стрелка = асинхронное событие через RabbitMQ
+  Реализован только /health в Orders Service. Остальное — проект.
+endlegend
+@enduml

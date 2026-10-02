@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2360" height="1590" viewBox="0 0 2360 1590" role="img" aria-labelledby="title desc">
+<title id="title">Marketplace — C4 Container: приложения, данные и синхронные API</title>
+<desc id="desc">C4 Container архитектура маркетплейса. Приватная база данных для каждого доменного сервиса. Сплошные связи синхронные, пунктирные — события через RabbitMQ.</desc>
+<defs><marker id="sync" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#174a78"/></marker><marker id="async" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#a75a00"/></marker></defs>
+<rect width="2360" height="1590" fill="#ffffff"/>
+<text x="45" y="47" font-family="Arial, Helvetica, sans-serif" font-size="31" fill="#183449" text-anchor="start" font-weight="700">Marketplace · C4 Container</text>
+<text x="45" y="78" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#183449" text-anchor="start">Целевая архитектура. Реализован только health-check Orders Service.</text>
+<rect x="60" y="110" width="340" height="125" rx="10" fill="#596373" stroke="#ffffff" stroke-width="2"/>
+<text x="230.0" y="145" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Покупатель</text>
+<text x="230.0" y="175" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Person]</text>
+<text x="230.0" y="209" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Лента и оформление заказов</text>
+<rect x="470" y="110" width="340" height="125" rx="10" fill="#596373" stroke="#ffffff" stroke-width="2"/>
+<text x="640.0" y="145" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Продавец</text>
+<text x="640.0" y="175" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Person]</text>
+<text x="640.0" y="209" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Управление предложениями</text>
+<rect x="1560" y="110" width="380" height="125" rx="10" fill="#596373" stroke="#ffffff" stroke-width="2"/>
+<text x="1750.0" y="145" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Платёжный провайдер</text>
+<text x="1750.0" y="175" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[External Software System]</text>
+<text x="1750.0" y="209" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Приём оплаты и возвраты</text>
+<rect x="1990" y="110" width="330" height="125" rx="10" fill="#596373" stroke="#ffffff" stroke-width="2"/>
+<text x="2155.0" y="145" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Email / SMS провайдер</text>
+<text x="2155.0" y="175" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[External Software System]</text>
+<text x="2155.0" y="209" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Доставка сообщений</text>
+<rect x="40" y="285" width="2280" height="1225" rx="12" fill="#f6f9fc" stroke="#748b9c" stroke-width="2" stroke-dasharray="10 6"/>
+<text x="420" y="308" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#183449" text-anchor="start" font-weight="700">Marketplace [Software System]</text>
+<rect x="880" y="355" width="600" height="140" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="1180.0" y="390" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Web App</text>
+<text x="1180.0" y="420" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | React / TypeScript]</text>
+<text x="1180.0" y="454" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Интерфейс покупателя и продавца</text>
+<rect x="880" y="585" width="600" height="140" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="1180.0" y="620" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">API Gateway</text>
+<text x="1180.0" y="650" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | NGINX]</text>
+<text x="1180.0" y="684" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">TLS, маршрутизация, проверка токена через Users</text>
+<rect x="65" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="230.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Users Service</text>
+<text x="230.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python / FastAPI]</text>
+<text x="230.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Учётные записи, роли, контакты</text>
+<text x="230.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">и выбранные категории интересов</text>
+<path d="M65 1248 C65 1224 395 1224 395 1248 L395 1375 C395 1399 65 1399 65 1375 Z" fill="#38698f"/>
+<ellipse cx="230.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="230.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Users DB</text>
+<text x="230.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="230.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Профили, роли, контакты</text>
+<text x="230.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">и предпочтения</text>
+<rect x="445" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="610.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Catalog Service</text>
+<text x="610.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python / FastAPI]</text>
+<text x="610.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Предложения, цены, остатки</text>
+<text x="610.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">и резервирование товаров</text>
+<path d="M445 1248 C445 1224 775 1224 775 1248 L775 1375 C775 1399 445 1399 445 1375 Z" fill="#38698f"/>
+<ellipse cx="610.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="610.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Catalog DB</text>
+<text x="610.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="610.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Товары, предложения, цены</text>
+<text x="610.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">остатки и резервы</text>
+<rect x="825" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="990.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Feed Service</text>
+<text x="990.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python / FastAPI]</text>
+<text x="990.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Персональная лента, просмотры</text>
+<text x="990.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">и проекция опубликованных товаров</text>
+<path d="M825 1248 C825 1224 1155 1224 1155 1248 L1155 1375 C1155 1399 825 1399 825 1375 Z" fill="#38698f"/>
+<ellipse cx="990.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="990.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Feed DB</text>
+<text x="990.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="990.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Просмотры, популярность</text>
+<text x="990.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">проекции каталога и интересов</text>
+<rect x="1205" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="1370.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Orders Service</text>
+<text x="1370.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python 3.12 / HTTP]</text>
+<text x="1370.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Заказы, расчёт суммы</text>
+<text x="1370.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">и координация оформления</text>
+<path d="M1205 1248 C1205 1224 1535 1224 1535 1248 L1535 1375 C1535 1399 1205 1399 1205 1375 Z" fill="#38698f"/>
+<ellipse cx="1370.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="1370.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Orders DB</text>
+<text x="1370.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="1370.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Заказы, снимки позиций</text>
+<text x="1370.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">суммы и состояние процесса</text>
+<rect x="1585" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="1750.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Payments Service</text>
+<text x="1750.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python / FastAPI]</text>
+<text x="1750.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Платежи, учёт операций</text>
+<text x="1750.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">возвраты и интеграция с PSP</text>
+<path d="M1585 1248 C1585 1224 1915 1224 1915 1248 L1915 1375 C1915 1399 1585 1399 1585 1375 Z" fill="#38698f"/>
+<ellipse cx="1750.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="1750.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Payments DB</text>
+<text x="1750.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="1750.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Попытки платежа, суммы</text>
+<text x="1750.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">журнал операций и возвраты</text>
+<rect x="1965" y="870" width="330" height="175" rx="10" fill="#174a78" stroke="#ffffff" stroke-width="2"/>
+<text x="2130.0" y="905" font-family="Arial, Helvetica, sans-serif" font-size="23" fill="#ffffff" text-anchor="middle" font-weight="700">Notifications Service</text>
+<text x="2130.0" y="935" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#e8f0f8" text-anchor="middle">[Container | Python / FastAPI]</text>
+<text x="2130.0" y="969" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">Уведомления о заказах</text>
+<text x="2130.0" y="994" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#ffffff" text-anchor="middle">и повторные попытки отправки</text>
+<path d="M1965 1248 C1965 1224 2295 1224 2295 1248 L2295 1375 C2295 1399 1965 1399 1965 1375 Z" fill="#38698f"/>
+<ellipse cx="2130.0" cy="1248" rx="165.0" ry="18" fill="#4b7fa7"/>
+<text x="2130.0" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="700">Notifications DB</text>
+<text x="2130.0" y="1314" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#e8f0f8" text-anchor="middle">[Container: Database | PostgreSQL]</text>
+<text x="2130.0" y="1344" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">Задания, результаты доставки</text>
+<text x="2130.0" y="1368" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">проекция проверенных контактов</text>
+<polyline points="230,235 230,340 1000,340 1000,355" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="525" y="332" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS · интерфейс покупателя</text>
+<polyline points="640,235 640,262 1300,262 1300,355" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1000" y="253" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS · интерфейс продавца</text>
+<polyline points="1180,495 1180,585" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1200" y="544" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON · запросы интерфейса</text>
+<polyline points="1030,725 1030,765 230,765 230,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="605" y="756" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON · вход, профиль, проверка токена</text>
+<polyline points="1110,725 1110,810 610,810 610,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="695" y="802" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON · каталог</text>
+<polyline points="990,725 990,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1005" y="830" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON</text>
+<text x="1005" y="854" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">лента, просмотры</text>
+<polyline points="1370,725 1370,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1385" y="830" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON</text>
+<text x="1385" y="854" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">заказы, отмена</text>
+<polyline points="1490,870 1490,807 1750,807 1750,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1760" y="779" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON</text>
+<text x="1760" y="803" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">платёж: create / status / cancel / refund</text>
+<polyline points="1280,1045 1280,1120 720,1120 720,1045" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1040" y="1107" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="middle" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS/JSON · резерв / подтверждение / освобождение</text>
+<polyline points="1690,870 1690,235" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1670" y="495" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="end" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS API</text>
+<text x="1670" y="519" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="end" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">платёж, сверка</text>
+<text x="1670" y="543" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="end" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">отмена, возврат</text>
+<polyline points="1810,235 1810,870" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1830" y="620" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS webhook</text>
+<text x="1830" y="644" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">результат оплаты</text>
+<text x="1830" y="668" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">проверяет Payments</text>
+<polyline points="2150,870 2150,235" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="2165" y="495" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS API</text>
+<text x="2165" y="519" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">отправка email/SMS</text>
+<polyline points="230,1045 230,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="242" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="242" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<polyline points="610,1045 610,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="622" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="622" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<polyline points="990,1045 990,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1002" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="1002" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<polyline points="1370,1045 1370,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1382" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="1382" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<polyline points="1750,1045 1750,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="1762" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="1762" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<polyline points="2130,1045 2130,1230" fill="none" stroke="#174a78" stroke-width="2.3" marker-end="url(#sync)"/>
+<text x="2142" y="1180" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">SQL</text>
+<text x="2142" y="1204" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#174a78" text-anchor="start" stroke="#f6f9fc" stroke-width="5" stroke-linejoin="round" paint-order="stroke">PostgreSQL protocol</text>
+<text x="75" y="1435" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#183449" text-anchor="start" font-weight="700">Каждое хранилище доступно только своему сервису. Общих таблиц и межсервисных SQL-запросов нет.</text>
+<text x="75" y="1471" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#a75a00" text-anchor="start">Асинхронные связи (пунктир, via RabbitMQ / AMQP 0-9-1) показаны на отдельном C4 Container view: c4-events.svg.</text>
+<text x="45" y="1545" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#183449" text-anchor="start">Легенда: синий — приложение; цилиндр — приватная БД; серый — человек / внешняя система; сплошная стрелка — синхронный запрос.</text>
+</svg>
