@@ -1,0 +1,85 @@
+name: arch-hw2
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: marketplace
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-marketplace_local}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketplace -d marketplace"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    image: arch-hw2-api:local
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8081}:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/marketplace
+      DATABASE_USER: marketplace
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-marketplace_local}
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-deployment-0123456789}
+      ORDER_RATE_LIMIT_MINUTES: ${ORDER_RATE_LIMIT_MINUTES:-1}
+      ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-15}
+      REFRESH_TOKEN_DAYS: ${REFRESH_TOKEN_DAYS:-7}
+      BOOTSTRAP_ADMIN_ENABLED: "true"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.test}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin-demo-123!}
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+
+  generate:
+    image: maven:3.9.11-eclipse-temurin-21
+    profiles: [tools]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven-cache:/root/.m2
+    command: ["mvn", "-B", "-ntp", "generate-sources"]
+
+  test-db:
+    image: postgres:17-alpine
+    profiles: [test]
+    environment:
+      POSTGRES_DB: marketplace_test
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: test_password
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketplace -d marketplace_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  tests:
+    image: maven:3.9.11-eclipse-temurin-21
+    profiles: [test]
+    working_dir: /workspace
+    environment:
+      DATABASE_URL: jdbc:postgresql://test-db:5432/marketplace_test
+      DATABASE_USER: marketplace
+      DATABASE_PASSWORD: test_password
+      JWT_SECRET: test-only-secret-at-least-32-bytes-0123456789012345
+      ORDER_RATE_LIMIT_MINUTES: "1"
+      BOOTSTRAP_ADMIN_ENABLED: "false"
+    volumes:
+      - .:/workspace
+      - maven-cache:/root/.m2
+    depends_on:
+      test-db:
+        condition: service_healthy
+    command: ["mvn", "-B", "-ntp", "test"]
+
+volumes:
+  pgdata:
+  maven-cache:
+    name: arch_hw2_maven_cache

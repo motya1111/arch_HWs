@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: marketplace-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/marketplace}
+    username: ${DATABASE_USER:marketplace}
+    password: ${DATABASE_PASSWORD:marketplace_local}
+    hikari:
+      maximum-pool-size: 16
+      connection-timeout: 10000
+  flyway:
+    enabled: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+      fail-on-numbers-for-enums: true
+      accept-float-as-int: false
+    serialization:
+      write-dates-as-timestamps: false
+server:
+  port: 8080
+  error:
+    whitelabel:
+      enabled: false
+marketplace:
+  jwt-secret: ${JWT_SECRET:local-development-secret-change-before-deployment-0123456789}
+  access-token-minutes: ${ACCESS_TOKEN_MINUTES:15}
+  refresh-token-days: ${REFRESH_TOKEN_DAYS:7}
+  order-rate-limit-minutes: ${ORDER_RATE_LIMIT_MINUTES:1}
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    email: ${ADMIN_EMAIL:admin@example.test}
+    password: ${ADMIN_PASSWORD:Admin-demo-123!}
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    url: /openapi/marketplace.yaml
+    disable-swagger-default-url: true
+    persist-authorization: false
+logging:
+  pattern:
+    console: "%msg%n"
+  level:
+    root: WARN
+    org.flywaydb: INFO
+    ru.marketplace: INFO
+    marketplace.requests: INFO

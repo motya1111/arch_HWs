@@ -1,0 +1,9 @@
+/target/
+/.venv/
+/.env
+/.idea/
+*.iml
+__pycache__/
+*.pyc
+.DS_Store
+/evidence/

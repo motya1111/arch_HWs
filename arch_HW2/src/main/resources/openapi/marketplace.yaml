@@ -1,0 +1,1384 @@
+openapi: 3.0.3
+info:
+  title: Marketplace — contract-first API
+  version: 1.0.0
+  description: Каталог, заказы, промокоды, JWT и роли. Деньги — точные decimal, одна условная валюта RUB. В HTTP
+    поле price — JSON number; максимум 2 значащих дробных знака. Все времена — RFC 3339 с часовым поясом. Неизвестные
+    JSON-поля и несоответствующие типы запрещены. Каждый ответ содержит UUID X-Request-Id. Все ошибки имеют ErrorResponse.
+    Размер JSON body ограничен 1048576 байтами; превышение даёт VALIDATION_ERROR (400).
+servers:
+- url: /
+  description: Текущий адрес API; Docker Compose по умолчанию http://localhost:8081
+security:
+- bearerAuth: []
+tags:
+- name: Health
+- name: Auth
+- name: Products
+- name: Orders
+- name: Promos
+paths:
+  /health:
+    get:
+      tags:
+      - Health
+      operationId: health
+      summary: Проверка процесса и подключения к БД
+      description: ''
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+  /auth/register:
+    post:
+      tags:
+      - Auth
+      operationId: register
+      summary: Регистрация USER / SELLER
+      description: ''
+      responses:
+        '201':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: login
+      summary: 'Вход: access + refresh JWT'
+      description: ''
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+  /auth/refresh:
+    post:
+      tags:
+      - Auth
+      operationId: refresh
+      summary: Одноразовая ротация refresh JWT
+      description: 'Предыдущий refresh token отзывается в той же транзакции; повторное использование: REFRESH_TOKEN_INVALID.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+  /products:
+    post:
+      tags:
+      - Products
+      operationId: createProduct
+      summary: Создать товар
+      description: 'Роли: SELLER, ADMIN. '
+      responses:
+        '201':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - SELLER
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+    get:
+      tags:
+      - Products
+      operationId: listProducts
+      summary: Список товаров
+      description: 'Роли: USER, SELLER, ADMIN. Все статусы, включая ARCHIVED, доступны всем трём ролям. Фильтры
+        объединяются AND. Сортировка created_at, id; totalElements считается после фильтрации.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles: &id001
+      - USER
+      - SELLER
+      - ADMIN
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+          maximum: 1000000
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 20
+          maximum: 100
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/ProductStatus'
+      - name: category
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\x00]*$
+        description: Точное, регистрозависимое совпадение
+  /products/{id}:
+    get:
+      tags:
+      - Products
+      operationId: getProduct
+      summary: Получить товар
+      description: 'Роли: USER, SELLER, ADMIN. '
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles: *id001
+      parameters:
+      - &id002
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+      - Products
+      operationId: updateProduct
+      summary: Полностью обновить товар
+      description: 'Роли: SELLER, ADMIN. '
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - SELLER
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      parameters:
+      - *id002
+    delete:
+      tags:
+      - Products
+      operationId: archiveProduct
+      summary: Мягко удалить товар
+      description: 'Роли: SELLER, ADMIN. SELLER — только свой, ADMIN — любой. Запись сохраняется, status = ARCHIVED.
+        Повторное архивирование: 204.'
+      responses:
+        '204':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - SELLER
+      - ADMIN
+      parameters:
+      - *id002
+  /orders:
+    post:
+      tags:
+      - Orders
+      operationId: createOrder
+      summary: Создать заказ
+      description: 'Роли: USER, ADMIN. Порядок проверок: частота CREATE_ORDER → активный заказ → каталог → остатки
+        → резерв → снимок цен → промокод → запись операции. Всё в одной транзакции. N задаётся ORDER_RATE_LIMIT_MINUTES.
+        Неудачные запросы не записывают операцию.'
+      responses:
+        '201':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/PromoError'
+        '429':
+          $ref: '#/components/responses/RateLimit'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - USER
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+  /orders/{id}:
+    get:
+      tags:
+      - Orders
+      operationId: getOrder
+      summary: Получить заказ
+      description: 'Роли: USER, ADMIN. USER — свой, ADMIN — любой.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - USER
+      - ADMIN
+      parameters:
+      - *id002
+    put:
+      tags:
+      - Orders
+      operationId: updateOrder
+      summary: Заменить позиции заказа
+      description: 'Роли: USER, ADMIN. Только CREATED. Сначала владелец и состояние, затем частота UPDATE_ORDER.
+        Возврат старых остатков, новый резерв, новые снимки текущих цен и пересчёт выполняются атомарно. Невалидный/истёкший
+        промокод: PROMO_CODE_INVALID и откат. Если сумма ниже минимума, скидка снимается и счётчик использования
+        уменьшается. Существующий заказ учитывает своё занятое использование и не расходует второе. ADMIN действует
+        с лимитом владельца заказа.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/PromoError'
+        '429':
+          $ref: '#/components/responses/RateLimit'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - USER
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+      parameters:
+      - *id002
+  /orders/{id}/cancel:
+    post:
+      tags:
+      - Orders
+      operationId: cancelOrder
+      summary: Отменить заказ
+      description: 'Роли: USER, ADMIN. Только CREATED и PAYMENT_PENDING. Атомарно возвращаются остатки и использование
+        промокода, status = CANCELED. Повторная отмена: INVALID_STATE_TRANSITION.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - USER
+      - ADMIN
+      parameters:
+      - *id002
+  /orders/{id}/status:
+    patch:
+      tags:
+      - Orders
+      operationId: changeOrderStatus
+      summary: Перевести заказ на следующий этап
+      description: 'Роли: ADMIN. Технический endpoint для демонстрации конечного автомата; интеграция оплаты вне
+        задания. Только CREATED → PAYMENT_PENDING → PAID → SHIPPED → COMPLETED. Отмена — через /cancel.'
+      responses:
+        '200':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdate'
+      parameters:
+      - *id002
+  /promo-codes:
+    post:
+      tags:
+      - Promos
+      operationId: createPromoCode
+      summary: Создать промокод
+      description: 'Роли: SELLER, ADMIN. '
+      responses:
+        '201':
+          description: Успешно
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCodeResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      x-roles:
+      - SELLER
+      - ADMIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoCodeCreate'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access JWT с claims sub, role, token_type=access; 15 минут по умолчанию. Refresh JWT принимается
+        только /auth/refresh.
+  headers:
+    RequestId:
+      description: UUID запроса, сгенерированный сервером
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ProductStatus:
+      type: string
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - ARCHIVED
+    OrderStatus:
+      type: string
+      enum:
+      - CREATED
+      - PAYMENT_PENDING
+      - PAID
+      - SHIPPED
+      - COMPLETED
+      - CANCELED
+    Role:
+      type: string
+      enum:
+      - USER
+      - SELLER
+      - ADMIN
+    DiscountType:
+      type: string
+      enum:
+      - PERCENTAGE
+      - FIXED_AMOUNT
+    ErrorCode:
+      type: string
+      enum:
+      - PRODUCT_NOT_FOUND
+      - PRODUCT_INACTIVE
+      - ORDER_NOT_FOUND
+      - ORDER_LIMIT_EXCEEDED
+      - ORDER_HAS_ACTIVE
+      - INVALID_STATE_TRANSITION
+      - INSUFFICIENT_STOCK
+      - PROMO_CODE_INVALID
+      - PROMO_CODE_MIN_AMOUNT
+      - ORDER_OWNERSHIP_VIOLATION
+      - VALIDATION_ERROR
+      - TOKEN_EXPIRED
+      - TOKEN_INVALID
+      - REFRESH_TOKEN_INVALID
+      - ACCESS_DENIED
+      - INVALID_CREDENTIALS
+      - EMAIL_ALREADY_EXISTS
+      - PROMO_CODE_ALREADY_EXISTS
+      - AMOUNT_LIMIT_EXCEEDED
+      - METHOD_NOT_ALLOWED
+      - ROUTE_NOT_FOUND
+      - INTERNAL_ERROR
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error_code
+      - message
+      properties:
+        error_code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+          nullable: true
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+    ProductCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - price
+      - stock
+      - category
+      - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        description:
+          type: string
+          maxLength: 4000
+          pattern: ^[^\x00]*$
+          nullable: true
+        price:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        seller_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: При создании отсутствие/null означает текущего пользователя. Назначать другого владельца
+            может только ADMIN. При PUT отсутствие/null сохраняет владельца.
+      description: Полное представление для записи; PUT заменяет поля, отсутствие description означает null. Цены
+        с точностью до 2 знаков. Неизвестные поля запрещены.
+      example:
+        name: Книга
+        description: null
+        price: 100.0
+        stock: 10
+        category: Books
+        status: ACTIVE
+    ProductUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - price
+      - stock
+      - category
+      - status
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        description:
+          type: string
+          maxLength: 4000
+          pattern: ^[^\x00]*$
+          nullable: true
+        price:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
+          description: Новый доступный остаток плюс резерв заказов CREATED/PAYMENT_PENDING не должен превышать 2147483647; иначе VALIDATION_ERROR.
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        seller_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: При создании отсутствие/null означает текущего пользователя. Назначать другого владельца
+            может только ADMIN. При PUT отсутствие/null сохраняет владельца.
+      description: Полное представление для записи; PUT заменяет поля, отсутствие description означает null. Цены
+        с точностью до 2 знаков. Неизвестные поля запрещены.
+      example:
+        name: Книга, новое издание
+        description: null
+        price: 120.0
+        stock: 10
+        category: Books
+        status: ACTIVE
+    ProductResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - price
+      - stock
+      - category
+      - status
+      - seller_id
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        description:
+          type: string
+          maxLength: 4000
+          pattern: ^[^\x00]*$
+          nullable: true
+        price:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^(?![\s\S]*\x00)[\s\S]*\S[\s\S]*$
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        seller_id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: Владелец-продавец товара
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    ProductPage:
+      type: object
+      additionalProperties: false
+      required:
+      - content
+      - totalElements
+      - page
+      - size
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+    UserRegister:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      - role
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 3
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          writeOnly: true
+        role:
+          type: string
+          enum:
+          - USER
+          - SELLER
+      description: Публичная регистрация только USER и SELLER; ADMIN создаётся оператором при запуске.
+      example:
+        email: buyer@example.test
+        password: Buyer-demo-123!
+        role: USER
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 3
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+      example:
+        email: admin@example.test
+        password: Admin-demo-123!
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          writeOnly: true
+    UserResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - email
+      - role
+      - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/Role'
+        created_at:
+          type: string
+          format: date-time
+    TokenResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - access_token
+      - refresh_token
+      - token_type
+      - expires_in
+      - user
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          enum:
+          - Bearer
+        expires_in:
+          type: integer
+          format: int32
+          minimum: 1
+        user:
+          $ref: '#/components/schemas/UserResponse'
+    OrderItemInput:
+      type: object
+      additionalProperties: false
+      required:
+      - product_id
+      - quantity
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999
+    OrderCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemInput'
+          minItems: 1
+          maxItems: 50
+          description: Каждый product_id встречается один раз; дубли дают VALIDATION_ERROR.
+        promo_code:
+          type: string
+          pattern: ^[A-Z0-9_]{4,20}$
+          nullable: true
+      x-class-extra-annotation: '@ru.marketplace.validation.UniqueProducts'
+      example:
+        items:
+        - product_id: 00000000-0000-0000-0000-000000000001
+          quantity: 2
+        promo_code: null
+    OrderUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemInput'
+          minItems: 1
+          maxItems: 50
+          description: Каждый product_id встречается один раз; дубли дают VALIDATION_ERROR.
+      x-class-extra-annotation: '@ru.marketplace.validation.UniqueProducts'
+      example:
+        items:
+        - product_id: 00000000-0000-0000-0000-000000000001
+          quantity: 1
+    OrderStatusUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+      description: 'ADMIN: CREATED → PAYMENT_PENDING → PAID → SHIPPED → COMPLETED. CANCELED допускается только через
+        /cancel. Остальные переходы: 409.'
+      example:
+        status: PAYMENT_PENDING
+    OrderItemResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - product_id
+      - quantity
+      - price_at_order
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999
+        price_at_order:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+    OrderResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - user_id
+      - status
+      - total_amount
+      - discount_amount
+      - items
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        promo_code_id:
+          type: string
+          format: uuid
+          nullable: true
+        total_amount:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        discount_amount:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PromoCodeCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - discount_type
+      - discount_value
+      - min_order_amount
+      - max_uses
+      - valid_from
+      - valid_until
+      - active
+      properties:
+        code:
+          type: string
+          pattern: ^[A-Z0-9_]{4,20}$
+        discount_type:
+          $ref: '#/components/schemas/DiscountType'
+        discount_value:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        min_order_amount:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        max_uses:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2147483647
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+      description: valid_until строго позже valid_from. Для PERCENTAGE discount_value ≤ 100. При скидке >70% предоставляется
+        0% (полная цена). Эти межполевые ограничения проверяются до записи. Скидка округляется HALF_UP до копеек;
+        процентная скидка дополнительно ограничена 70% суммы с округлением границы вниз, чтобы не превышать её на
+        малых суммах.
+      example:
+        code: SAVE10
+        discount_type: PERCENTAGE
+        discount_value: 10
+        min_order_amount: 100
+        max_uses: 100
+        valid_from: '2026-01-01T00:00:00Z'
+        valid_until: '2030-01-01T00:00:00Z'
+        active: true
+    PromoCodeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - code
+      - discount_type
+      - discount_value
+      - min_order_amount
+      - max_uses
+      - valid_from
+      - valid_until
+      - active
+      - current_uses
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          pattern: ^[A-Z0-9_]{4,20}$
+        discount_type:
+          $ref: '#/components/schemas/DiscountType'
+        discount_value:
+          type: number
+          format: decimal
+          minimum: 0.01
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        min_order_amount:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 9999999999.99
+          multipleOf: 0.01
+          x-field-extra-annotation: '@jakarta.validation.constraints.Digits(integer = 10, fraction = 2)'
+        max_uses:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2147483647
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+        current_uses:
+          type: integer
+          format: int32
+          minimum: 0
+  responses:
+    ValidationError:
+      description: 'VALIDATION_ERROR; details.violations: массив объектов {field, message}'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: TOKEN_INVALID, TOKEN_EXPIRED, REFRESH_TOKEN_INVALID или INVALID_CREDENTIALS
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: ACCESS_DENIED или ORDER_OWNERSHIP_VIOLATION
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: PRODUCT_NOT_FOUND, ORDER_NOT_FOUND или ROUTE_NOT_FOUND
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    MethodNotAllowed:
+      description: METHOD_NOT_ALLOWED
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: PRODUCT_INACTIVE, ORDER_HAS_ACTIVE, INVALID_STATE_TRANSITION, INSUFFICIENT_STOCK, EMAIL_ALREADY_EXISTS,
+        PROMO_CODE_ALREADY_EXISTS, AMOUNT_LIMIT_EXCEEDED
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    PromoError:
+      description: PROMO_CODE_INVALID или PROMO_CODE_MIN_AMOUNT
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimit:
+      description: ORDER_LIMIT_EXCEEDED; details.retry_after_seconds
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: INTERNAL_ERROR; request_id позволяет найти запись в журнале
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+x-error-catalog:
+  PRODUCT_NOT_FOUND:
+    http_status: 404
+    description: Товар не найден
+  PRODUCT_INACTIVE:
+    http_status: 409
+    description: Товар не ACTIVE
+  ORDER_NOT_FOUND:
+    http_status: 404
+    description: Заказ не найден
+  ORDER_LIMIT_EXCEEDED:
+    http_status: 429
+    description: Не истёк интервал между успешными операциями данного типа
+  ORDER_HAS_ACTIVE:
+    http_status: 409
+    description: У пользователя есть CREATED или PAYMENT_PENDING
+  INVALID_STATE_TRANSITION:
+    http_status: 409
+    description: Недопустимое состояние или переход
+  INSUFFICIENT_STOCK:
+    http_status: 409
+    description: Недостаточный остаток
+  PROMO_CODE_INVALID:
+    http_status: 422
+    description: Промокод отсутствует, неактивен, исчерпан либо вне срока
+  PROMO_CODE_MIN_AMOUNT:
+    http_status: 422
+    description: Сумма ниже минимальной для промокода
+  ORDER_OWNERSHIP_VIOLATION:
+    http_status: 403
+    description: Заказ другого пользователя
+  VALIDATION_ERROR:
+    http_status: 400
+    description: Нарушение контракта запроса
+  TOKEN_EXPIRED:
+    http_status: 401
+    description: Access token истёк
+  TOKEN_INVALID:
+    http_status: 401
+    description: Access token отсутствует, неверен или имеет другой тип
+  REFRESH_TOKEN_INVALID:
+    http_status: 401
+    description: Refresh token неверен, истёк или уже использован
+  ACCESS_DENIED:
+    http_status: 403
+    description: Недостаточная роль либо чужой товар
+  INVALID_CREDENTIALS:
+    http_status: 401
+    description: Неверные учётные данные
+  EMAIL_ALREADY_EXISTS:
+    http_status: 409
+    description: Email уже зарегистрирован
+  PROMO_CODE_ALREADY_EXISTS:
+    http_status: 409
+    description: Код промоакции уже существует
+  AMOUNT_LIMIT_EXCEEDED:
+    http_status: 409
+    description: Сумма не помещается в DECIMAL(12,2)
+  METHOD_NOT_ALLOWED:
+    http_status: 405
+    description: Метод не поддерживается
+  ROUTE_NOT_FOUND:
+    http_status: 404
+    description: Маршрут не найден
+  INTERNAL_ERROR:
+    http_status: 500
+    description: Внутренняя ошибка; подробности не раскрываются
