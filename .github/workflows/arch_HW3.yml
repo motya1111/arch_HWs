@@ -1,0 +1,35 @@
+name: arch_HW3 — gRPC, Redis Sentinel and resilience
+on:
+  push:
+    paths: ['arch_HW3/**', '.github/workflows/arch_HW3.yml']
+  pull_request:
+    paths: ['arch_HW3/**', '.github/workflows/arch_HW3.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: arch_HW3
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Integration, E2E SELECT, real Flight outage and Redis failover
+        run: |
+          mkdir -p evidence
+          sh scripts/test.sh 2>&1 | tee evidence/verification.log
+      - name: Generate protocol code and verify ignore rules
+        run: |
+          docker compose --profile tools run --build --rm tools
+          git check-ignore generated/flights/v1/flight_pb2.py
+          test -z "$(git ls-files generated)"
+      - name: Upload verification log
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: arch_HW3-verification
+          path: arch_HW3/evidence/verification.log

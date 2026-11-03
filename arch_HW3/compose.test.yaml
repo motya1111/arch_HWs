@@ -1,0 +1,29 @@
+services:
+  flight-db:
+    environment: {POSTGRES_DB: flight_test}
+    healthcheck: {test: [CMD-SHELL, pg_isready -U flight -d flight_test]}
+  booking-db:
+    environment: {POSTGRES_DB: booking_test}
+    healthcheck: {test: [CMD-SHELL, pg_isready -U booking -d booking_test]}
+  flight:
+    environment:
+      DATABASE_URL: postgresql://flight:${FLIGHT_DB_PASSWORD:-flight_local}@flight-db:5432/flight_test
+      TEST_FAULTS_ENABLED: '1'
+    ports: !override ['127.0.0.1:50551:50051']
+  booking:
+    environment:
+      DATABASE_URL: postgresql://booking:${BOOKING_DB_PASSWORD:-booking_local}@booking-db:5432/booking_test
+      TEST_FAULTS_ENABLED: '1'
+      RECOVERY_GRACE_SECONDS: '1'
+    ports: !override ['127.0.0.1:8092:8080']
+  tests:
+    image: arch-hw3:local
+    profiles: [test]
+    command: [pytest, -q, tests]
+    environment:
+      BOOKING_BASE_URL: http://booking:8080
+      FLIGHT_GRPC_TARGET: flight:50051
+      GRPC_API_KEY: ${GRPC_API_KEY:-local-flight-service-key-change-me}
+      FLIGHT_DATABASE_URL: postgresql://flight:${FLIGHT_DB_PASSWORD:-flight_local}@flight-db:5432/flight_test
+      BOOKING_DATABASE_URL: postgresql://booking:${BOOKING_DB_PASSWORD:-booking_local}@booking-db:5432/booking_test
+      REDIS_SENTINELS: sentinel-1:26379,sentinel-2:26379,sentinel-3:26379

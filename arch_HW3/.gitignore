@@ -1,0 +1,9 @@
+/generated/
+/.venv/
+/.env
+/evidence/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+/.ruff_cache/

@@ -1,0 +1,14 @@
+{
+  "flight": {
+    "airline_code": "DE",
+    "airline_name": "Demo Air",
+    "flight_number": "DE2001",
+    "origin": "SVO",
+    "destination": "LED",
+    "departure_time": "2099-05-01T10:00:00Z",
+    "arrival_time": "2099-05-01T12:00:00Z",
+    "total_seats": 10,
+    "price": "7500.00",
+    "status": "SCHEDULED"
+  }
+}
